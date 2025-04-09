@@ -9,12 +9,6 @@ const itemsPerPage = 4;
 let currentPage = 1;
 let filteredProjects = [];
 
-// Giới hạn độ dài
-const MIN_NAME_LENGTH = 3; // Tối thiểu 3 ký tự
-const MAX_NAME_LENGTH = 50; // Tối đa 50 ký tự
-const MIN_DESC_LENGTH = 10; // Tối thiểu 10 ký tự
-const MAX_DESC_LENGTH = 200; // Tối đa 200 ký tự
-
 // Lọc dự án theo ownerId (nếu có currentUser)
 function getUserProjects() {
     if (!currentUser) return [];
@@ -140,8 +134,8 @@ saveBtn.addEventListener('click', () => {
         errorMessage.textContent = 'Vui lòng nhập tên dự án';
         errorMessage.style.display = 'block';
         return;
-    } else if (projectName.length < MIN_NAME_LENGTH || projectName.length > MAX_NAME_LENGTH) {
-        errorMessage.textContent = `Tên dự án phải từ ${MIN_NAME_LENGTH} đến ${MAX_NAME_LENGTH} ký tự`;
+    } else if (projectName.length < 3 || projectName.length > 50) {
+        errorMessage.textContent = `Tên dự án phải từ 3 đến 50 ký tự`;
         errorMessage.style.display = 'block';
         return;
     }
@@ -151,8 +145,8 @@ saveBtn.addEventListener('click', () => {
         errorMessage.textContent = 'Vui lòng nhập mô tả dự án';
         errorMessage.style.display = 'block';
         return;
-    } else if (projectDescription.length < MIN_DESC_LENGTH || projectDescription.length > MAX_DESC_LENGTH) {
-        errorMessage.textContent = `Mô tả dự án phải từ ${MIN_DESC_LENGTH} đến ${MAX_DESC_LENGTH} ký tự`;
+    } else if (projectDescription.length < 10 || projectDescription.length > 200) {
+        errorMessage.textContent = `Mô tả dự án phải từ 10 đến 200 ký tự`;
         errorMessage.style.display = 'block';
         return;
     }
