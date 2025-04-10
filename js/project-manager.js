@@ -1,28 +1,31 @@
-// Lấy người dùng hiện tại từ localStorage (có thể null nếu chưa đăng nhập)
-let currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
-// Dữ liệu dự án từ localStorage
+let currentUser = localStorage.getItem("currentUser");
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-// Phân trang
 const itemsPerPage = 4;
 let currentPage = 1;
 let filteredProjects = [];
 
-// Lọc dự án theo ownerId (nếu có currentUser)
+const MIN_NAME_LENGTH = 3;
+const MAX_NAME_LENGTH = 50;
+const MIN_DESC_LENGTH = 10;
+const MAX_DESC_LENGTH = 200;
+
 function getUserProjects() {
     if (!currentUser) return [];
-    return projects.filter(project => project.ownerId === currentUser.id);
+    return projects.filter(project => 
+        project.members.some(member => 
+            member.userId === parseInt(currentUser) && member.role === "Project owner"
+        )
+    );
 }
 
-// Hiển thị danh sách dự án theo trang
 function displayProjects(projectList, page) {
     const tbody = document.querySelector('tbody');
     tbody.innerHTML = '';
 
-    if (!currentUser) {
-        tbody.innerHTML = '<tr><td colspan="3">Vui lòng đăng nhập để xem và quản lý dự án</td></tr>';
-        document.querySelector('.add-project').disabled = true;
+    if (projectList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">Không có dự án nào để hiển thị</td></tr>';
         updatePagination(0);
         return;
     }
@@ -31,24 +34,26 @@ function displayProjects(projectList, page) {
     const end = start + itemsPerPage;
     const paginatedProjects = projectList.slice(start, end);
 
+    const fragment = document.createDocumentFragment();
     paginatedProjects.forEach(project => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${project.id}</td>
-            <td>${project.name}</td>
+            <td>${project.projectName}</td>
             <td>
                 <button class="edit" onclick="editProject(${project.id})">Sửa</button>
                 <button class="delete" onclick="deleteProject(${project.id})">Xóa</button>
-                <button class="details"><a href="../pages/project-details.html">Chi tiết</a></button>
+                <button class="details"><a href="../pages/project-details.html?projectId=${project.id}">Chi tiết</a></button>
             </td>
         `;
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
     });
+    tbody.appendChild(fragment);
 
     updatePagination(projectList.length);
+    document.querySelector('.add-project').disabled = !currentUser;
 }
 
-// Cập nhật phân trang
 function updatePagination(totalItems) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const pagination = document.querySelector('.pagination');
@@ -92,7 +97,6 @@ function updatePagination(totalItems) {
     pagination.appendChild(next);
 }
 
-// Mở modal thêm/sửa dự án
 const addProjectBtn = document.querySelector('.add-project');
 const modal = document.querySelector('.bg-modal');
 const closeModal = modal.querySelector('.fa-x');
@@ -103,71 +107,79 @@ let isEditing = false;
 let editingId = null;
 
 addProjectBtn.addEventListener('click', () => {
-    if (!currentUser) {
-        alert("Vui lòng đăng nhập để thêm dự án!");
-        return;
-    }
     isEditing = false;
     editingId = null;
     modal.style.display = 'block';
     form.reset();
     modal.querySelector('p').textContent = 'Thêm dự án';
-    document.querySelector('.error-message').style.display = 'none';
+    document.querySelectorAll('.modalForm .error-message').forEach(msg => msg.style.display = 'none');
 });
 
-closeModal.addEventListener('click', () => {
-    modal.style.display = 'none';
-});
+closeModal.addEventListener('click', () => modal.style.display = 'none');
+cancelBtn.addEventListener('click', () => modal.style.display = 'none');
 
-cancelBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-});
-
-// Lưu dự án
 saveBtn.addEventListener('click', () => {
     const projectName = document.getElementById('projectName').value.trim();
     const projectDescription = document.getElementById('projectDescription').value.trim();
-    const errorMessage = document.querySelector('.error-message');
+    const nameError = document.querySelector('.modalForm .error-message:nth-of-type(1)');
+    const descError = document.querySelector('.modalForm .error-message:nth-of-type(2)');
 
-    // Kiểm tra độ dài tên dự án
+    nameError.style.display = 'none';
+    descError.style.display = 'none';
+
+    let valid = true;
+
     if (!projectName) {
-        errorMessage.textContent = 'Vui lòng nhập tên dự án';
-        errorMessage.style.display = 'block';
-        return;
-    } else if (projectName.length < 3 || projectName.length > 50) {
-        errorMessage.textContent = `Tên dự án phải từ 3 đến 50 ký tự`;
-        errorMessage.style.display = 'block';
-        return;
+        nameError.textContent = 'Vui lòng nhập tên dự án';
+        nameError.style.display = 'block';
+        valid = false;
+    } else if (projectName.length < MIN_NAME_LENGTH || projectName.length > MAX_NAME_LENGTH) {
+        nameError.textContent = `Tên dự án phải từ ${MIN_NAME_LENGTH} đến ${MAX_NAME_LENGTH} ký tự`;
+        nameError.style.display = 'block';
+        valid = false;
     }
 
-    // Kiểm tra độ dài mô tả dự án
     if (!projectDescription) {
-        errorMessage.textContent = 'Vui lòng nhập mô tả dự án';
-        errorMessage.style.display = 'block';
-        return;
-    } else if (projectDescription.length < 10 || projectDescription.length > 200) {
-        errorMessage.textContent = `Mô tả dự án phải từ 10 đến 200 ký tự`;
-        errorMessage.style.display = 'block';
-        return;
+        descError.textContent = 'Vui lòng nhập mô tả dự án';
+        descError.style.display = 'block';
+        valid = false;
+    } else if (projectDescription.length < MIN_DESC_LENGTH || projectDescription.length > MAX_DESC_LENGTH) {
+        descError.textContent = `Mô tả dự án phải từ ${MIN_DESC_LENGTH} đến ${MAX_DESC_LENGTH} ký tự`;
+        descError.style.display = 'block';
+        valid = false;
     }
 
-    // Kiểm tra trùng tên
     const isDuplicate = projects.some(project => 
-        project.name.toLowerCase() === projectName.toLowerCase() && 
+        project.projectName.toLowerCase() === projectName.toLowerCase() && 
         (!isEditing || project.id !== editingId)
     );
     if (isDuplicate) {
-        errorMessage.textContent = 'Tên dự án đã tồn tại';
-        errorMessage.style.display = 'block';
-        return;
+        nameError.textContent = 'Tên dự án đã tồn tại';
+        nameError.style.display = 'block';
+        valid = false;
     }
 
+    if (!valid) return;
+
+    let newProject;
     if (isEditing) {
         const projectIndex = projects.findIndex(p => p.id === editingId);
-        projects[projectIndex] = { id: editingId, name: projectName, description: projectDescription, ownerId: currentUser.id };
+        newProject = { 
+            id: editingId, 
+            projectName,
+            projectInfo: projectDescription,
+            members: projects[projectIndex].members
+        };
+        projects[projectIndex] = newProject;
     } else {
         const newId = projects.length ? Math.max(...projects.map(p => p.id)) + 1 : 1;
-        projects.push({ id: newId, name: projectName, description: projectDescription, ownerId: currentUser.id });
+        newProject = { 
+            id: newId, 
+            projectName,
+            projectInfo: projectDescription,
+            members: currentUser ? [{ userId: parseInt(currentUser), role: "Project owner" }] : []
+        };
+        projects.push(newProject);
     }
 
     localStorage.setItem('projects', JSON.stringify(projects));
@@ -176,24 +188,17 @@ saveBtn.addEventListener('click', () => {
     modal.style.display = 'none';
 });
 
-// Sửa dự án
 function editProject(id) {
-    if (!currentUser) {
-        alert("Vui lòng đăng nhập để sửa dự án!");
-        return;
-    }
     isEditing = true;
     editingId = id;
     const project = projects.find(p => p.id === id);
-    if (project.ownerId !== currentUser.id) return;
     modal.style.display = 'block';
     modal.querySelector('p').textContent = 'Sửa dự án';
-    document.getElementById('projectName').value = project.name;
-    document.getElementById('projectDescription').value = project.description;
-    document.querySelector('.error-message').style.display = 'none';
+    document.getElementById('projectName').value = project.projectName;
+    document.getElementById('projectDescription').value = project.projectInfo || "";
+    document.querySelectorAll('.modalForm .error-message').forEach(msg => msg.style.display = 'none');
 }
 
-// Xóa dự án và cập nhật lại ID
 const confirmModal = document.querySelectorAll('.bg-modal')[1];
 const confirmDeleteBtn = confirmModal.querySelector('button[style*="dc3545"]');
 const cancelDeleteBtn = confirmModal.querySelector('.cancel');
@@ -201,58 +206,44 @@ const closeConfirmModal = confirmModal.querySelector('.fa-x');
 let deleteId = null;
 
 function deleteProject(id) {
-    if (!currentUser) {
-        alert("Vui lòng đăng nhập để xóa dự án!");
+    const project = projects.find(p => p.id === id);
+    if (!project) {
+        console.error("Dự án không tồn tại!");
         return;
     }
-    const project = projects.find(p => p.id === id);
-    if (project.ownerId !== currentUser.id) return;
     deleteId = id;
     confirmModal.style.display = 'block';
 }
 
-closeConfirmModal.addEventListener('click', () => {
-    confirmModal.style.display = 'none';
-});
-
-cancelDeleteBtn.addEventListener('click', () => {
-    confirmModal.style.display = 'none';
-});
+closeConfirmModal.addEventListener('click', () => confirmModal.style.display = 'none');
+cancelDeleteBtn.addEventListener('click', () => confirmModal.style.display = 'none');
 
 confirmDeleteBtn.addEventListener('click', () => {
-    // Xóa dự án
+    tasks = tasks.filter(task => task.projectId !== deleteId);
     projects = projects.filter(p => p.id !== deleteId);
-    // Cập nhật lại ID
-    projects = projects.map((project, index) => ({
-        ...project,
-        id: index + 1
-    }));
     localStorage.setItem('projects', JSON.stringify(projects));
+    localStorage.setItem('tasks', JSON.stringify(tasks));
     filteredProjects = getUserProjects();
     currentPage = Math.min(currentPage, Math.ceil(filteredProjects.length / itemsPerPage)) || 1;
     displayProjects(filteredProjects, currentPage);
     confirmModal.style.display = 'none';
 });
 
-// Tìm kiếm dự án
 const searchBox = document.querySelector('.search-box');
 searchBox.addEventListener('input', (e) => {
-    if (!currentUser) return;
     const searchTerm = e.target.value.toLowerCase();
     filteredProjects = getUserProjects().filter(project => 
-        project.name.toLowerCase().includes(searchTerm)
+        project.projectName.toLowerCase().includes(searchTerm)
     );
     currentPage = 1;
     displayProjects(filteredProjects, currentPage);
 });
 
-// Khởi tạo
 document.addEventListener('DOMContentLoaded', () => {
     filteredProjects = getUserProjects();
     displayProjects(filteredProjects, currentPage);
 });
 
-// Xử lý đăng xuất
 document.querySelector('a[href="../pages/login.html"]').addEventListener('click', (e) => {
     e.preventDefault();
     localStorage.removeItem('currentUser');

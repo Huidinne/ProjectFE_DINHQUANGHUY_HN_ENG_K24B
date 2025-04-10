@@ -59,12 +59,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (valid) {
-            let users = JSON.parse(localStorage.getItem("users")) || [];
+            let users = JSON.parse(localStorage.getItem("user")) || [];
             const newId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
 
             const userData = {
                 id: newId,
-                username: username.value.trim(),
+                fullName: username.value.trim(), // Thay username thành fullName
                 email: email.value.trim(),
                 password: pass.value.trim()
             };
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             users.push(userData);
-            localStorage.setItem("users", JSON.stringify(users));
+            localStorage.setItem("user", JSON.stringify(users)); // Lưu vào key "user"
 
             username.value = "";
             email.value = "";

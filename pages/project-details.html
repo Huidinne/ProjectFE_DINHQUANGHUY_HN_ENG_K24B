@@ -27,39 +27,21 @@
         <div class="body">
             <div class="content">
                 <section class="project-info">
-                    <h2>Xây dựng website thương mại điện tử</h2><br>
-                    <p>Dự án nhằm phát triển một nền tảng thương mại điện tử với các tính năng như giỏ hàng, thanh toán và quản lý sản phẩm.</p>
+                    <h2></h2><br>
+                    <p></p>
                     <button class="btn">+ Thêm nhiệm vụ</button>
                 </section>
         
                 <section class="members">
                     <p><span>Thành viên</span> <button class="addMemBtn">+ Thêm thành viên</button></p>
-                    <div class="list-member">
-                        <div class="member">
-                            <div class="avatar an">AN</div>
-                            <div class="info">
-                                <span>An Nguyễn</span>
-                                <small>Project owner</small>
-                            </div>
-                        </div>
-                        <div class="member">
-                            <div class="avatar bn">BN</div>
-                            <div class="info">
-                                <span>Bách Nguyễn</span>
-                                <small>Frontend developer</small>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="more"><i class="fa-solid fa-ellipsis"></i></span>
-                        </div>
-                    </div>
+                    <div class="list-member"></div>
                     <div class="search-box">
-                        <select name="" id="">
+                        <select name="sort" id="sort">
                             <option value="">Sắp xếp theo</option>
-                            <option value="">Hạn chót</option>
-                            <option value="">Độ ưu tiên</option>
+                            <option value="dueDate">Hạn chót</option>
+                            <option value="priority">Độ ưu tiên</option>
                         </select>
-                        <input type="search" name="" id="search" placeholder="Tìm kiếm nhiệm vụ">
+                        <input type="search" name="search" id="search" placeholder="Tìm kiếm nhiệm vụ">
                     </div>
                 </section>
             </div>
@@ -83,54 +65,26 @@
                             <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> To do</td>
                         </tr>
                         <tbody class="collapse" id="todo-list">
-                            <tr>
-                                <td>Soạn thảo đề cương dự án</td>
-                                <td>An Nguyễn</td>
-                                <td><span class="priority high">Cao</span></td>
-                                <td class="start-date">02-24</td>
-                                <td class="deadline">02-27</td>
-                                <td><span class="status overdue">Trễ hạn</span></td>
-                                <td>
-                                    <button class="edit">Sửa</button>
-                                    <button class="delete">Xóa</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                        <tbody data-toggle="collapse" href="#inprogress-list" class="">
-                            <tr class="task-group">
-                                <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> In Progress</td>
-                            </tr>
-                           <tbody class="collapse" id="inprogress-list">
-                                <tr>
-                                    <td>Lên lịch họp kickoff</td>
-                                    <td>An Nguyễn</td>
-                                    <td><span class="priority medium">Trung bình</span></td>
-                                    <td class="start-date">02-24</td>
-                                    <td class="deadline">02-27</td>
-                                    <td><span class="status risky">Có rủi ro</span></td>
-                                    <td>
-                                        <button class="edit">Sửa</button>
-                                        <button class="delete">Xóa</button>
-                                    </td>
-                                </tr>
-                           </tbody>
-                        </tbody>
-                        <tbody data-toggle="collapse" href="#pending-list">
-                            <tr class="task-group">
-                                <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Pending</td>
-                            </tr>
-                            <tbody class="collapse" id="pending-list">
 
-                            </tbody>
                         </tbody>
-                        <tbody data-toggle="collapse" href="#done-list">
-                            <tr class="task-group">
-                                <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Done</td>
-                            </tr>
-                            <tbody class="collapse" id="done-list">
-
-                            </tbody>
-                        </tbody>
+                    </tbody>
+                    <tbody data-toggle="collapse" href="#inprogress-list">
+                        <tr class="task-group">
+                            <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> In Progress</td>
+                        </tr>
+                        <tbody class="collapse" id="inprogress-list"></tbody>
+                    </tbody>
+                    <tbody data-toggle="collapse" href="#pending-list">
+                        <tr class="task-group">
+                            <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Pending</td>
+                        </tr>
+                        <tbody class="collapse" id="pending-list"></tbody>
+                    </tbody>
+                    <tbody data-toggle="collapse" href="#done-list">
+                        <tr class="task-group">
+                            <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Done</td>
+                        </tr>
+                        <tbody class="collapse" id="done-list"></tbody>
                     </tbody>
                 </table>
             </section>
@@ -140,15 +94,15 @@
     <!-- Modal Thêm/Sửa Nhiệm Vụ -->
     <section class="bg-modal" style="display: none;">
         <div class="addModal">
-            <p>Thêm/sửa nhiệm vụ</p><span><i class="fa-solid fa-x"></i></span>
+            <p>Thêm nhiệm vụ</p><span><i class="fa-solid fa-x"></i></span>
             <form action="" class="modalForm">
                 <label for="taskName">Tên nhiệm vụ</label><br>
-                <input type="text" name="taskname" id="taskName"><br>
+                <input type="text" name="taskName" id="taskName"><br>
+                <p class="error-message"></p>
                 <label for="person-in-charge">Người phụ trách</label><br>
                 <select name="person-in-charge" id="person-in-charge">
                     <option value="">Chọn người phụ trách</option>
                     <option value="An Nguyễn">An Nguyễn</option>
-                    <option value="Bách Nguyễn">Bách Nguyễn</option>
                 </select><br>
                 <label for="status">Trạng thái</label><br>
                 <select name="status" id="status">
@@ -186,7 +140,7 @@
 
     <!-- Modal Thêm Thành Viên -->
     <section class="bg-modal" style="display: none;">
-        <div class="addMemModal" >
+        <div class="addMemModal">
             <p>Thêm thành viên</p><span><i class="fa-solid fa-x"></i></span>
             <form action="" class="modalForm">
                 <label for="email">Email</label><br>
@@ -216,7 +170,7 @@
     </section>
 
     <footer>
-        <p>&copy; 2025 Quản Lý Dự Án Nhóm. All rights reserved.</p>
+        <p>© 2025 Quản Lý Dự Án Nhóm. All rights reserved.</p>
     </footer>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

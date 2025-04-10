@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         clearErrors();
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const users = JSON.parse(localStorage.getItem("user")) || []; // Đổi key thành "user"
         let valid = true;
 
         if (users.length === 0) {
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 showError(passwordInput, "Email hoặc mật khẩu không chính xác");
                 valid = false;
             } else {
-                localStorage.setItem("currentUser", JSON.stringify(matchedUser));
+                localStorage.setItem("currentUser", matchedUser.id); // Chỉ lưu ID
             }
         }
 
