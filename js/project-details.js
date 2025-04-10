@@ -78,6 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let editingRow = null;
     let deletingRow = null;
+    let currentTaskStartDate = null; // Lưu ngày bắt đầu hiện tại của nhiệm vụ khi chỉnh sửa
+    let currentTaskEndDate = null;   // Lưu ngày hạn hiện tại của nhiệm vụ khi chỉnh sửa
 
     function openModal(modal) {
         modal.style.display = "flex";
@@ -87,6 +89,13 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "none";
         editingRow = null;
         deletingRow = null;
+        currentTaskStartDate = null; // Reset ngày bắt đầu hiện tại
+        currentTaskEndDate = null;   // Reset ngày hạn hiện tại
+        // Xóa thuộc tính min khi đóng modal
+        document.getElementById("assignDate").removeAttribute("min");
+        document.getElementById("dueDate").removeAttribute("min");
+        // Xóa sự kiện onchange của assignDate
+        document.getElementById("assignDate").onchange = null;
     }
 
     function formatDisplayDate(dateStr) {
@@ -146,6 +155,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function clearForm() {
         document.querySelector(".modalForm").reset();
+        // Thiết lập giá trị tối thiểu cho assignDate và dueDate khi thêm mới
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        document.getElementById("assignDate").setAttribute("min", todayStr);
+        document.getElementById("dueDate").setAttribute("min", todayStr);
+        // Xóa sự kiện onchange của assignDate
+        document.getElementById("assignDate").onchange = null;
     }
 
     function bindEvents() {
@@ -174,6 +190,27 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("dueDate").value = task.end;
         document.getElementById("progress").value = task.progress;
         document.getElementById("status").value = task.status;
+
+        // Lưu ngày bắt đầu và ngày hạn hiện tại của nhiệm vụ
+        currentTaskStartDate = task.start;
+        currentTaskEndDate = task.end;
+        // Thiết lập giá trị tối thiểu cho assignDate và dueDate
+        document.getElementById("assignDate").setAttribute("min", currentTaskStartDate);
+        // Ban đầu, giá trị min của dueDate là ngày hạn hiện tại hoặc ngày bắt đầu hiện tại (lấy giá trị lớn hơn)
+        const initialMinDueDate = new Date(currentTaskStartDate) > new Date(currentTaskEndDate) ? currentTaskStartDate : currentTaskEndDate;
+        document.getElementById("dueDate").setAttribute("min", initialMinDueDate);
+
+        // Thêm sự kiện onchange cho assignDate để cập nhật min của dueDate
+        document.getElementById("assignDate").onchange = function () {
+            const newStartDate = this.value;
+            // Cập nhật min của dueDate dựa trên ngày bắt đầu mới, nhưng không nhỏ hơn currentTaskEndDate
+            const minDueDate = new Date(newStartDate) > new Date(currentTaskEndDate) ? newStartDate : currentTaskEndDate;
+            document.getElementById("dueDate").setAttribute("min", minDueDate);
+            // Nếu ngày hạn hiện tại nhỏ hơn ngày bắt đầu mới, reset giá trị của dueDate
+            if (new Date(document.getElementById("dueDate").value) < new Date(newStartDate)) {
+                document.getElementById("dueDate").value = newStartDate;
+            }
+        };
 
         openModal(taskModal);
     }
@@ -219,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
             closeModal(modal);
         });
     });
-
+    
     saveBtn.addEventListener("click", () => {
         const name = document.getElementById("taskName").value.trim();
         const assigneeId = parseInt(document.getElementById("person-in-charge").value);
@@ -229,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const progress = document.getElementById("progress").value;
         const status = document.getElementById("status").value;
 
-        if (!name || isNaN(assigneeId) || !start || !end || !priority || !progress || !status) {
+        if (isNaN(assigneeId) || !start || !end || !priority || !progress || !status) {
             alert("Vui lòng nhập đầy đủ thông tin.");
             return;
         }
@@ -242,6 +279,37 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!users.some(u => u.id === assigneeId)) {
             alert("Người phụ trách không tồn tại.");
             return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        if (!editingRow) {
+            if (startDate < today) {
+                alert("Ngày bắt đầu không được trước ngày hiện tại.");
+                return;
+            }
+            if (endDate < today) {
+                alert("Ngày hạn không được trước ngày hiện tại.");
+                return;
+            }
+        }
+
+        // Kiểm tra ngày bắt đầu và ngày hạn khi chỉnh sửa
+        if (editingRow && currentTaskStartDate && currentTaskEndDate) {
+            const newStartDate = new Date(start);
+            const currentStartDate = new Date(currentTaskStartDate);
+            const newEndDate = new Date(end);
+            const currentEndDate = new Date(currentTaskEndDate);
+            if (newStartDate < currentStartDate) {
+                alert("Ngày bắt đầu mới không được sớm hơn ngày bắt đầu hiện tại.");
+                return;
+            }
+            if (newEndDate < currentEndDate) {
+                alert("Ngày hạn mới không được sớm hơn ngày hạn hiện tại.");
+                return;
+            }
         }
 
         const task = {
