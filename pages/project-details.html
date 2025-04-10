@@ -78,35 +78,11 @@
                             <th>Hành Động</th>
                         </tr>
                     </thead>
-                    <tbody data-toggle="collapse" href="#collapseExample">
+                    <tbody data-toggle="collapse" href="#todo-list">
                         <tr class="task-group">
                             <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> To do</td>
                         </tr>
-                        <tbody class="collapse" id="collapseExample">
-                            <tr>
-                                <td>Soạn thảo đề cương dự án</td>
-                                <td>An Nguyễn</td>
-                                <td><span class="priority low">Thấp</span></td>
-                                <td class="start-date">02-24</td>
-                                <td class="deadline">02-27</td>
-                                <td><span class="status on-track">Đúng tiến độ</span></td>
-                                <td>
-                                    <button class="edit">Sửa</button>
-                                    <button class="delete">Xóa</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Soạn thảo đề cương dự án</td>
-                                <td>An Nguyễn</td>
-                                <td><span class="priority medium">Trung bình</span></td>
-                                <td class="start-date">02-24</td>
-                                <td class="deadline">02-27</td>
-                                <td><span class="status risky">Có rủi ro</span></td>
-                                <td>
-                                    <button class="edit">Sửa</button>
-                                    <button class="delete">Xóa</button>
-                                </td>
-                            </tr>
+                        <tbody class="collapse" id="todo-list">
                             <tr>
                                 <td>Soạn thảo đề cương dự án</td>
                                 <td>An Nguyễn</td>
@@ -120,11 +96,11 @@
                                 </td>
                             </tr>
                         </tbody>
-                        <tbody data-toggle="collapse" href="#2" class="">
+                        <tbody data-toggle="collapse" href="#inprogress-list" class="">
                             <tr class="task-group">
                                 <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> In Progress</td>
                             </tr>
-                           <tbody class="collapse" id="2">
+                           <tbody class="collapse" id="inprogress-list">
                                 <tr>
                                     <td>Lên lịch họp kickoff</td>
                                     <td>An Nguyễn</td>
@@ -139,12 +115,22 @@
                                 </tr>
                            </tbody>
                         </tbody>
-                        <tr class="task-group">
-                            <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Pending</td>
-                        </tr>
-                        <tr class="task-group">
-                            <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Done</td>
-                        </tr>
+                        <tbody data-toggle="collapse" href="#pending-list">
+                            <tr class="task-group">
+                                <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Pending</td>
+                            </tr>
+                            <tbody class="collapse" id="pending-list">
+
+                            </tbody>
+                        </tbody>
+                        <tbody data-toggle="collapse" href="#done-list">
+                            <tr class="task-group">
+                                <td class="statusNow" colspan="7"><i class="fa-solid fa-caret-right"></i> Done</td>
+                            </tr>
+                            <tbody class="collapse" id="done-list">
+
+                            </tbody>
+                        </tbody>
                     </tbody>
                 </table>
             </section>
@@ -161,14 +147,16 @@
                 <label for="person-in-charge">Người phụ trách</label><br>
                 <select name="person-in-charge" id="person-in-charge">
                     <option value="">Chọn người phụ trách</option>
-                    <option value=""></option>
-                    <option value=""></option>
+                    <option value="An Nguyễn">An Nguyễn</option>
+                    <option value="Bách Nguyễn">Bách Nguyễn</option>
                 </select><br>
                 <label for="status">Trạng thái</label><br>
                 <select name="status" id="status">
                     <option value="">Chọn trạng thái nhiệm vụ</option>
-                    <option value=""></option>
-                    <option value=""></option>
+                    <option value="To do">To do</option>
+                    <option value="In progress">In progress</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Done">Done</option>
                 </select><br>
                 <label for="assignDate">Ngày bắt đầu</label><br>
                 <input type="date" name="assignDate" id="assignDate"><br>
@@ -177,14 +165,16 @@
                 <label for="priority">Độ ưu tiên</label><br>
                 <select name="priority" id="priority">
                     <option value="">Chọn độ ưu tiên</option>
-                    <option value=""></option>
-                    <option value=""></option>
+                    <option value="high">Cao</option>
+                    <option value="medium">Trung bình</option>
+                    <option value="low">Thấp</option>
                 </select><br>
                 <label for="progress">Tiến độ</label><br>
                 <select name="progress" id="progress">
                     <option value="">Chọn tiến độ</option>
-                    <option value=""></option>
-                    <option value=""></option>
+                    <option value="on-track">Đúng tiến độ</option>
+                    <option value="risky">Có rủi ro</option>
+                    <option value="overdue">Trễ hạn</option>
                 </select>
             </form>
             <div>
