@@ -1,33 +1,37 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const projectId = parseInt(urlParams.get('projectId')) || 1;
+    const projectId = parseInt(urlParams.get("projectId")) || 1;
 
     const projects = JSON.parse(localStorage.getItem("projects")) || [];
     const users = JSON.parse(localStorage.getItem("user")) || [];
     let allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
     // Loại bỏ các task có assigneeId: null
-    allTasks = allTasks.filter(task => task.assigneeId !== null && !isNaN(task.assigneeId));
+    allTasks = allTasks.filter((task) => task.assigneeId !== null && !isNaN(task.assigneeId));
     localStorage.setItem("tasks", JSON.stringify(allTasks));
 
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
     if (!project) {
         console.error("Không tìm thấy dự án!");
         return;
     }
 
     // Hiển thị thông tin dự án
-    const projectInfo = document.querySelector('.project-info');
-    projectInfo.querySelector('h2').textContent = project.projectName;
-    projectInfo.querySelector('p').textContent = project.projectInfo || "Không có mô tả.";
+    const projectInfo = document.querySelector(".project-info");
+    projectInfo.querySelector("h2").textContent = project.projectName;
+    projectInfo.querySelector("p").textContent = project.projectInfo || "Không có mô tả.";
 
     // Hiển thị thành viên
-    const listMember = document.querySelector('.list-member');
-    listMember.innerHTML = '';
-    project.members.forEach(member => {
-        const user = users.find(u => u.id == member.userId);
+    const listMember = document.querySelector(".list-member");
+    listMember.innerHTML = "";
+    project.members.forEach((member) => {
+        const user = users.find((u) => u.id == member.userId);
         if (user) {
-            const initials = user.fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+            const initials = user.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase();
             listMember.innerHTML += `
                 <div class="member">
                     <div class="avatar ${initials.toLowerCase()}">${initials}</div>
@@ -43,18 +47,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Điền danh sách người phụ trách vào select (chỉ gồm Project Owner và 1 member)
     const personInChargeSelect = document.getElementById("person-in-charge");
     personInChargeSelect.innerHTML = '<option value="">Chọn người phụ trách</option>';
-    
-    const projectOwner = project.members.find(m => m.role === "Project owner");
-    const otherMember = project.members.find(m => m.role !== "Project owner");
+
+    const projectOwner = project.members.find((m) => m.role === "Project owner");
+    const otherMember = project.members.find((m) => m.role !== "Project owner");
 
     if (projectOwner) {
-        const owner = users.find(u => u.id === projectOwner.userId);
+        const owner = users.find((u) => u.id === projectOwner.userId);
         if (owner) {
             personInChargeSelect.innerHTML += `<option value="${owner.id}">${owner.fullName}</option>`;
         }
     }
     if (otherMember) {
-        const member = users.find(u => u.id === otherMember.userId);
+        const member = users.find((u) => u.id === otherMember.userId);
         if (member) {
             personInChargeSelect.innerHTML += `<option value="${member.id}">${member.fullName}</option>`;
         }
@@ -62,40 +66,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Kiểm tra nếu không có thành viên hợp lệ
     if (!projectOwner && !otherMember) {
-        alert("Dự án không có thành viên hợp lệ để phân công nhiệm vụ!");
+        const errorMessage = document.createElement("p");
+        errorMessage.className = "error-message";
+        errorMessage.textContent = "Dự án không có thành viên hợp lệ để phân công nhiệm vụ!";
+        document.querySelector(".project-info").appendChild(errorMessage);
         document.querySelector(".btn").disabled = true;
     }
 
     // Task Logic
-    const taskModal = document.querySelector(".addModal").parentElement;
+    const addModal = document.querySelector(".addModal");
+    const taskModal = addModal ? addModal.parentElement : null;
+    if (!taskModal) {
+        console.error("Task modal or its parent element not found!");
+        return;
+    }
+
     const modalTitle = taskModal.querySelector("p");
     const saveBtn = taskModal.querySelector(".save");
     const cancelBtns = document.querySelectorAll(".cancel, .fa-x");
-    const confirmModal = document.querySelector(".confirmModal").parentElement;
+
+    const confirmModalElement = document.querySelector(".confirmModal");
+    const confirmModal = confirmModalElement ? confirmModalElement.parentElement : null;
+    if (!confirmModal) {
+        console.error("Confirm modal or its parent element not found!");
+        return;
+    }
     const confirmDeleteBtn = confirmModal.querySelector(".confirmDelete");
-    const addMemModal = document.querySelector(".addMemModal")?.parentElement;
+
+    const addMemModalElement = document.querySelector(".addMemModal");
+    const addMemModal = addMemModalElement ? addMemModalElement.parentElement : null;
     const addMemBtn = document.querySelector(".addMemBtn");
 
     let editingRow = null;
     let deletingRow = null;
     let currentTaskStartDate = null; // Lưu ngày bắt đầu hiện tại của nhiệm vụ khi chỉnh sửa
-    let currentTaskEndDate = null;   // Lưu ngày hạn hiện tại của nhiệm vụ khi chỉnh sửa
+    let currentTaskEndDate = null; // Lưu ngày hạn hiện tại của nhiệm vụ khi chỉnh sửa
 
     function openModal(modal) {
-        modal.style.display = "flex";
+        if (modal) {
+            modal.style.display = "flex";
+            clearAllErrors();
+        }
     }
 
     function closeModal(modal) {
-        modal.style.display = "none";
-        editingRow = null;
-        deletingRow = null;
-        currentTaskStartDate = null; // Reset ngày bắt đầu hiện tại
-        currentTaskEndDate = null;   // Reset ngày hạn hiện tại
-        // Xóa thuộc tính min khi đóng modal
-        document.getElementById("assignDate").removeAttribute("min");
-        document.getElementById("dueDate").removeAttribute("min");
-        // Xóa sự kiện onchange của assignDate
-        document.getElementById("assignDate").onchange = null;
+        if (modal) {
+            modal.style.display = "none";
+            editingRow = null;
+            deletingRow = null;
+            currentTaskStartDate = null; // Reset ngày bắt đầu hiện tại
+            currentTaskEndDate = null; // Reset ngày hạn hiện tại
+            // Xóa thuộc tính min khi đóng modal
+            document.getElementById("assignDate").removeAttribute("min");
+            document.getElementById("dueDate").removeAttribute("min");
+            // Xóa sự kiện onchange của assignDate
+            document.getElementById("assignDate").onchange = null;
+            clearAllErrors();
+        }
     }
 
     function formatDisplayDate(dateStr) {
@@ -124,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "todo-list": "To do",
             "inprogress-list": "In progress",
             "pending-list": "Pending",
-            "done-list": "Done"
+            "done-list": "Done",
         }[id] || "";
     }
 
@@ -133,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getUserFullName(userId) {
-        const user = users.find(u => u.id == userId);
+        const user = users.find((u) => u.id == userId);
         return user ? user.fullName : "Không rõ";
     }
 
@@ -153,22 +180,51 @@ document.addEventListener("DOMContentLoaded", () => {
         </tr>`;
     }
 
+    function showError(inputId, message) {
+        const input = document.getElementById(inputId);
+        const errorP = document.getElementById(`${inputId}-error`);
+
+        if (input && errorP) {
+            input.classList.add("error");
+            errorP.textContent = message;
+            errorP.style.display = "block";
+        }
+    }
+
+    function clearError(inputId) {
+        const input = document.getElementById(inputId);
+        const errorP = document.getElementById(`${inputId}-error`);
+
+        if (input && errorP) {
+            input.classList.remove("error");
+            errorP.textContent = "";
+            errorP.style.display = "none";
+        }
+    }
+
+    function clearAllErrors() {
+        ["taskName", "person-in-charge", "priority", "assignDate", "dueDate", "progress", "status"].forEach((id) =>
+            clearError(id)
+        );
+    }
+
     function clearForm() {
         document.querySelector(".modalForm").reset();
         // Thiết lập giá trị tối thiểu cho assignDate và dueDate khi thêm mới
         const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
         document.getElementById("assignDate").setAttribute("min", todayStr);
         document.getElementById("dueDate").setAttribute("min", todayStr);
         // Xóa sự kiện onchange của assignDate
         document.getElementById("assignDate").onchange = null;
+        clearAllErrors();
     }
 
     function bindEvents() {
-        document.querySelectorAll("tbody .edit").forEach(btn => {
+        document.querySelectorAll("tbody .edit").forEach((btn) => {
             btn.onclick = () => openEditModal(btn.closest("tr"));
         });
-        document.querySelectorAll("tbody .delete").forEach(btn => {
+        document.querySelectorAll("tbody .delete").forEach((btn) => {
             btn.onclick = () => openDeleteModal(btn.closest("tr"));
         });
     }
@@ -179,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
         saveBtn.textContent = "Lưu";
 
         const taskId = row.dataset.id;
-        const task = tasks.find(t => t.id == taskId);
+        const task = tasks.find((t) => t.id == taskId);
 
         if (!task) return;
 
@@ -197,7 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Thiết lập giá trị tối thiểu cho assignDate và dueDate
         document.getElementById("assignDate").setAttribute("min", currentTaskStartDate);
         // Ban đầu, giá trị min của dueDate là ngày hạn hiện tại hoặc ngày bắt đầu hiện tại (lấy giá trị lớn hơn)
-        const initialMinDueDate = new Date(currentTaskStartDate) > new Date(currentTaskEndDate) ? currentTaskStartDate : currentTaskEndDate;
+        const initialMinDueDate =
+            new Date(currentTaskStartDate) > new Date(currentTaskEndDate) ? currentTaskStartDate : currentTaskEndDate;
         document.getElementById("dueDate").setAttribute("min", initialMinDueDate);
 
         // Thêm sự kiện onchange cho assignDate để cập nhật min của dueDate
@@ -221,16 +278,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function saveTasksToLocalStorage() {
-        const dataToSave = tasks.filter(t => t.projectId === projectId);
-        localStorage.setItem("tasks", JSON.stringify([...allTasks.filter(t => t.projectId !== projectId), ...dataToSave]));
+        console.log("Saving to localStorage:", allTasks); // Debug: Kiểm tra dữ liệu trước khi lưu
+        localStorage.setItem("tasks", JSON.stringify(allTasks));
     }
 
-    let tasks = allTasks.filter(t => t.projectId === projectId);
+    let tasks = allTasks.filter((t) => t.projectId === projectId);
 
     function loadTasks() {
         const fragment = document.createDocumentFragment();
-        tasks.forEach(task => {
-            const tr = document.createElement('tr');
+        tasks.forEach((task) => {
+            const tr = document.createElement("tr");
             tr.innerHTML = renderTaskRow(task);
             fragment.appendChild(tr);
             getTbodyByStatus(task.status).appendChild(fragment);
@@ -250,14 +307,16 @@ document.addEventListener("DOMContentLoaded", () => {
         addMemBtn.addEventListener("click", () => openModal(addMemModal));
     }
 
-    cancelBtns.forEach(btn => {
+    cancelBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
             const modal = btn.closest(".bg-modal");
             closeModal(modal);
         });
     });
-    
+
     saveBtn.addEventListener("click", () => {
+        clearAllErrors(); // Xóa lỗi cũ
+
         const name = document.getElementById("taskName").value.trim();
         const assigneeId = parseInt(document.getElementById("person-in-charge").value);
         const priority = document.getElementById("priority").value;
@@ -266,18 +325,53 @@ document.addEventListener("DOMContentLoaded", () => {
         const progress = document.getElementById("progress").value;
         const status = document.getElementById("status").value;
 
-        if (isNaN(assigneeId) || !start || !end || !priority || !progress || !status) {
-            alert("Vui lòng nhập đầy đủ thông tin.");
-            return;
+        let hasError = false;
+
+        if (!name) {
+            showError("taskName", "Vui lòng nhập tên nhiệm vụ.");
+            hasError = true;
         }
+
+        if (isNaN(assigneeId)) {
+            showError("person-in-charge", "Vui lòng chọn người phụ trách.");
+            hasError = true;
+        }
+
+        if (!priority) {
+            showError("priority", "Vui lòng chọn độ ưu tiên.");
+            hasError = true;
+        }
+
+        if (!start) {
+            showError("assignDate", "Vui lòng chọn ngày bắt đầu.");
+            hasError = true;
+        }
+
+        if (!end) {
+            showError("dueDate", "Vui lòng chọn ngày hạn.");
+            hasError = true;
+        }
+
+        if (!progress) {
+            showError("progress", "Vui lòng chọn tiến độ.");
+            hasError = true;
+        }
+
+        if (!status) {
+            showError("status", "Vui lòng chọn trạng thái.");
+            hasError = true;
+        }
+
+        if (hasError) return;
 
         if (new Date(start) > new Date(end)) {
-            alert("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+            showError("assignDate", "Ngày bắt đầu phải nhỏ hơn ngày hạn chót.");
+            showError("dueDate", "");
             return;
         }
 
-        if (!users.some(u => u.id === assigneeId)) {
-            alert("Người phụ trách không tồn tại.");
+        if (!users.some((u) => u.id === assigneeId)) {
+            showError("person-in-charge", "Người phụ trách không tồn tại.");
             return;
         }
 
@@ -285,35 +379,39 @@ document.addEventListener("DOMContentLoaded", () => {
         today.setHours(0, 0, 0, 0);
         const startDate = new Date(start);
         const endDate = new Date(end);
+
         if (!editingRow) {
             if (startDate < today) {
-                alert("Ngày bắt đầu không được trước ngày hiện tại.");
+                showError("assignDate", "Ngày bắt đầu không được trước ngày hiện tại.");
                 return;
             }
             if (endDate < today) {
-                alert("Ngày hạn không được trước ngày hiện tại.");
+                showError("dueDate", "Ngày hạn không được trước ngày hiện tại.");
                 return;
             }
         }
 
-        // Kiểm tra ngày bắt đầu và ngày hạn khi chỉnh sửa
         if (editingRow && currentTaskStartDate && currentTaskEndDate) {
             const newStartDate = new Date(start);
             const currentStartDate = new Date(currentTaskStartDate);
             const newEndDate = new Date(end);
             const currentEndDate = new Date(currentTaskEndDate);
             if (newStartDate < currentStartDate) {
-                alert("Ngày bắt đầu mới không được sớm hơn ngày bắt đầu hiện tại.");
+                showError("assignDate", "Ngày bắt đầu mới không được sớm hơn ngày bắt đầu hiện tại.");
                 return;
             }
             if (newEndDate < currentEndDate) {
-                alert("Ngày hạn mới không được sớm hơn ngày hạn hiện tại.");
+                showError("dueDate", "Ngày hạn mới không được sớm hơn ngày hạn hiện tại.");
                 return;
             }
         }
 
         const task = {
-            id: editingRow ? parseInt(editingRow.dataset.id) : (allTasks.length ? Math.max(...allTasks.map(t => t.id)) + 1 : 1),
+            id: editingRow
+                ? parseInt(editingRow.dataset.id)
+                : allTasks.length
+                ? Math.max(...allTasks.map((t) => t.id)) + 1
+                : 1,
             name,
             assigneeId,
             priority,
@@ -321,19 +419,23 @@ document.addEventListener("DOMContentLoaded", () => {
             end,
             progress,
             status,
-            projectId
+            projectId,
         };
 
         if (editingRow) {
-            const index = tasks.findIndex(t => t.id === task.id);
+            const index = tasks.findIndex((t) => t.id === task.id);
             tasks[index] = task;
-            // Xóa hàng cũ
+            // Cập nhật allTasks
+            const allTasksIndex = allTasks.findIndex((t) => t.id === task.id);
+            if (allTasksIndex > -1) {
+                allTasks[allTasksIndex] = task;
+            }
             editingRow.remove();
-            // Thêm hàng mới vào bảng tương ứng với trạng thái mới
             const statusTbody = getTbodyByStatus(task.status);
             statusTbody.insertAdjacentHTML("beforeend", renderTaskRow(task));
         } else {
             tasks.push(task);
+            allTasks.push(task); // Thêm vào allTasks
             const statusTbody = getTbodyByStatus(task.status);
             statusTbody.insertAdjacentHTML("beforeend", renderTaskRow(task));
         }
@@ -345,8 +447,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     confirmDeleteBtn.addEventListener("click", () => {
         const id = parseInt(deletingRow.dataset.id);
-        const index = tasks.findIndex(t => t.id === id);
-        if (index > -1) tasks.splice(index, 1);
+        console.log("Deleting task with ID:", id); // Debug: Kiểm tra ID nhiệm vụ bị xóa
+        console.log("Before deletion - tasks:", tasks, "allTasks:", allTasks); // Debug: Trạng thái trước khi xóa
+
+        // Xóa khỏi tasks
+        const index = tasks.findIndex((t) => t.id === id);
+        if (index > -1) {
+            tasks.splice(index, 1);
+        }
+
+        // Xóa khỏi allTasks
+        allTasks = allTasks.filter((t) => t.id !== id);
+
+        console.log("After deletion - tasks:", tasks, "allTasks:", allTasks); // Debug: Trạng thái sau khi xóa
+
         deletingRow.remove();
         saveTasksToLocalStorage();
         closeModal(confirmModal);

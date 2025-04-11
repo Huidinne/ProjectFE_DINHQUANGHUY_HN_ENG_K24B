@@ -96,14 +96,20 @@
         <div class="addModal">
             <p>Thêm nhiệm vụ</p><span><i class="fa-solid fa-x"></i></span>
             <form action="" class="modalForm">
+                <!-- Tên nhiệm vụ -->
                 <label for="taskName">Tên nhiệm vụ</label><br>
                 <input type="text" name="taskName" id="taskName"><br>
-                <p class="error-message" style="display: none;"></p>
+                <p class="error-message" id="taskName-error" style="display: none;"></p>
+    
+                <!-- Người phụ trách -->
                 <label for="person-in-charge">Người phụ trách</label><br>
                 <select name="person-in-charge" id="person-in-charge">
                     <option value="">Chọn người phụ trách</option>
-                    <option value="An Nguyễn">An Nguyễn</option>
+                    <option value="1">An Nguyễn</option> <!-- Lưu ý: dùng ID (ví dụ 1) để trùng với user.id -->
                 </select><br>
+                <p class="error-message" id="person-in-charge-error" style="display: none;"></p>
+    
+                <!-- Trạng thái -->
                 <label for="status">Trạng thái</label><br>
                 <select name="status" id="status">
                     <option value="">Chọn trạng thái nhiệm vụ</option>
@@ -111,11 +117,20 @@
                     <option value="In progress">In progress</option>
                     <option value="Pending">Pending</option>
                     <option value="Done">Done</option>
-                </select><br><span></span>
+                </select><br>
+                <p class="error-message" id="status-error" style="display: none;"></p>
+    
+                <!-- Ngày bắt đầu -->
                 <label for="assignDate">Ngày bắt đầu</label><br>
                 <input type="date" name="assignDate" id="assignDate"><br>
+                <p class="error-message" id="assignDate-error" style="display: none;"></p>
+    
+                <!-- Hạn cuối -->
                 <label for="dueDate">Hạn cuối</label><br>
                 <input type="date" name="dueDate" id="dueDate"><br>
+                <p class="error-message" id="dueDate-error" style="display: none;"></p>
+    
+                <!-- Độ ưu tiên -->
                 <label for="priority">Độ ưu tiên</label><br>
                 <select name="priority" id="priority">
                     <option value="">Chọn độ ưu tiên</option>
@@ -123,20 +138,26 @@
                     <option value="medium">Trung bình</option>
                     <option value="low">Thấp</option>
                 </select><br>
+                <p class="error-message" id="priority-error" style="display: none;"></p>
+    
+                <!-- Tiến độ -->
                 <label for="progress">Tiến độ</label><br>
                 <select name="progress" id="progress">
                     <option value="">Chọn tiến độ</option>
                     <option value="on-track">Đúng tiến độ</option>
                     <option value="risky">Có rủi ro</option>
                     <option value="overdue">Trễ hạn</option>
-                </select>
+                </select><br>
+                <p class="error-message" id="progress-error" style="display: none;"></p>
             </form>
+    
             <div>
                 <button class="cancel" type="button">Hủy</button>
-                <button class="save" type="button">Lưu</button>
+                <button class="save" type="button" id="saveBtn">Lưu</button>
             </div>
         </div>
     </section>
+    
 
     <!-- Modal Thêm Thành Viên -->
     <section class="bg-modal" style="display: none;">
