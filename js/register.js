@@ -29,8 +29,13 @@ document.addEventListener("DOMContentLoaded", function () {
         clearErrors();
         let valid = true;
 
-        if (username.value.trim() === "") {
+        if (username.value.trim() === "" || username.value.trim() > 30 ) {
             showError(username, "Mời nhập họ tên");
+            valid = false;
+        }
+
+        if (username.value.trim().length > 25 ) {
+            showError(username, "Độ dài tối đa 25 kí tự");
             valid = false;
         }
 
